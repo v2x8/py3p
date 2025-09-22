@@ -5,10 +5,11 @@
 - [Introduction](#introduction)
 - [Features](#features)
     - [py3p.exports](#py3pexports)
-        - [py3p.Empty](#py3pempty)
+    - [py3p.Empty](#py3pempty)
+    - [py3p.safe](#py3psafe)
 - [License](#license)
 ## Introduction
-The repository is an enhanced toolkit extending the python 3 standard library.
+The repository is an enhanced toolkit extending the python 3.10+ standard library.
 ## Features
 ### **py3p.exports**
 #### Dynamic `__all__` Generation
@@ -38,5 +39,19 @@ The repository is an enhanced toolkit extending the python 3 standard library.
 - `Empty` is a singleton of the `EmptyType` class, supporting serialization and deserialization
 - Boolean evaluation of `Empty` is `False`
 - String representation of `Empty` is `'Empty'`
+### **py3p.safe**
+#### A safer set of `builtins` functions
+- `safe.__import__`
+    > Imports a module. Unlike `builtins.__import__`, this version disables the module cache
+- `safe.isinstance`
+    > Checks an object’s type. Unlike `builtins.isinstance`, it ignores class-level overrides.
+- `safe.delattr`
+    > Deletes an attribute. Unlike `builtins.delattr`, it ignores class-level overrides.
+- `safe.getattr`
+    > Get an attribute. Unlike `builtins.getattr`, it ignores class-level overrides.
+- `safe.hasattr`
+    > Checks if an attribute exists. Unlike `builtins.hasattr`, it ignores class-level overrides.
+- `safe.setattr`
+    > Set an attribute. Unlike `builtins.setattr`, it ignores class-level overrides.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

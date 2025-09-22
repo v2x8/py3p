@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from builtins import classmethod, set
+from builtins import classmethod, set, staticmethod
 
 class exports:
     _blacklist = set()
@@ -50,5 +50,60 @@ exports.prepare()
 exports.include('exports')
 
 Empty = EmptyType()
+
+class safe:
+    @staticmethod
+    def __import__(name):
+        from builtins import __import__
+        from sys import modules
+        module = modules.get(name)
+        if module is not None:
+            del modules[name]
+        result = __import__(name)
+        if module is not None:
+            modules[name] = module
+        return result
+    @staticmethod
+    def isinstance(obj, class_or_tuple):
+        from builtins import TypeError, any, object, tuple, type
+        from types import UnionType
+        if class_or_tuple is type or safe.isinstance(class_or_tuple, type):
+            mro = type.__getattribute__( type(obj), '__mro__' )
+            return class_or_tuple in mro
+        if safe.isinstance(class_or_tuple, tuple):
+            return any( safe.isinstance(obj, cls) for cls in class_or_tuple )
+        if safe.isinstance(class_or_tuple, UnionType):
+            args = object.__getattribute__(class_or_tuple, '__args__')
+            return safe.isinstance(obj, args)
+        msg = 'isinstance() arg 2 must be a type, a tuple of types, or a union'
+        raise TypeError(msg)
+    @staticmethod
+    def delattr(obj, name):
+        from builtins import object, type
+        cls = type if safe.isinstance(obj, type) else object
+        return cls.__delattr__(obj, name)
+    @staticmethod
+    def getattr(obj, name, default=Empty):
+        from builtins import AttributeError, object, type
+        try:
+            cls = type if safe.isinstance(obj, type) else object
+            return cls.__getattribute__(obj, name)
+        except AttributeError:
+            if default is not Empty:
+                return default
+            raise
+    @staticmethod
+    def hasattr(obj, name):
+        from builtins import AttributeError
+        try:
+            safe.getattr(obj, name)
+            return True
+        except AttributeError:
+            return False
+    @staticmethod
+    def setattr(obj, name, value):
+        from builtins import object, type
+        cls = type if safe.isinstance(obj, type) else object
+        return cls.__setattr__(obj, name, value)
 
 exports.export()

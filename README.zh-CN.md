@@ -6,9 +6,10 @@
 - [功能](#功能)
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
+    - [py3p.safe](#py3psafe)
 - [许可](#许可)
 ## 简介
-本仓库是一个基于 python 3 标准库的增强型扩展工具集。
+本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
 ## 功能
 ### **py3p.exports**
 #### 动态生成 `__all__`
@@ -38,5 +39,19 @@
 - `Empty` 是 `EmptyType` 的单例，支持序列化和反序列化
 - `Empty` 的布尔表现为 `False`
 - `Empty` 的字符串表现为 `'Empty'`
+### **py3p.safe**
+#### 一组更加安全的 `builtins` 函数
+- `safe.__import__`
+    > 导入模块，相比 `builtins.__import__`，禁用了模块缓存机制
+- `safe.isinstance`
+    > 判断实例类型，相比 `builtins.isinstance`，禁用了类方法影响
+- `safe.delattr`
+    > 删除属性，相比 `builtins.delattr`，禁用了类方法影响
+- `safe.getattr`
+    > 获取属性值，相比 `builtins.getattr`，禁用了类方法影响
+- `safe.hasattr`
+    > 判断属性是否存在，相比 `builtins.hasattr`，禁用了类方法影响
+- `safe.setattr`
+    > 设置属性值，相比 `builtins.setattr`，禁用了类方法影响
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
