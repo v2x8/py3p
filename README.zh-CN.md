@@ -5,6 +5,7 @@
 - [简介](#简介)
 - [功能](#功能)
     - [py3p.exports](#py3pexports)
+    - [py3p.Empty](#py3pempty)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3 标准库的增强型扩展工具集。
@@ -29,5 +30,13 @@
     > 将对象加入黑名单
 - `exports.export(cls) @classmethod`
     > 将在白名单中或不在黑名单中的变量导出
+### **py3p.Empty**
+#### 消除 `None` 作为参数默认值的歧义
+- 用于区分 **未传入参数** 和 **传入 None**
+- 仅在需要默认参数但函数接受包括 `None` 在内的普通参数时使用
+#### 逻辑行为
+- `Empty` 是 `EmptyType` 的单例，支持序列化和反序列化
+- `Empty` 的布尔表现为 `False`
+- `Empty` 的字符串表现为 `'Empty'`
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
