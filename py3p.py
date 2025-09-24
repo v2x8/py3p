@@ -179,4 +179,24 @@ def pstr(obj, indent=1):
         return str(obj)
     return _pstr(obj)
 
+def getname(obj):
+    from functools import partial, partialmethod
+    from types import MethodType
+    if ( result := safe.getattr(obj, '__qualname__', None) ) is not None:
+        return result
+    if ( result := safe.getattr(obj, '__name__', None) ) is not None:
+        return result
+    if safe.isinstance(obj, partial | partialmethod):
+        if ( wrapped := safe.getattr(obj, '__wrapped__', None) ) is not None:
+            return getname(wrapped)
+        if ( keywords := safe.getattr(obj, 'keywords', None) ) is not None:
+            if ( wrapped := keywords.get('wrapped') ) is not None:
+                return getname(wrapped)
+        if ( func := safe.getattr(obj, 'func', None) ) is not None:
+            return getname(func)
+    if safe.isinstance(obj, MethodType):
+        if ( func := safe.getattr(obj, '__func__', None) ) is not None:
+            return getname(func)
+    return None
+
 exports.export()

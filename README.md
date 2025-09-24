@@ -8,6 +8,7 @@
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
     - [py3p.pstr](#py3ppstr)
+    - [py3p.getname](#py3pgetname)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -69,5 +70,10 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
 | `bool` | `True` | Uses `\t` for indentation |
 | | Boolean equivalent of `True` | Converted and handled as `str` |
 | | Boolean equivalent of `False` | Output is a single-line string |
+### **py3p.getname**
+#### Get the name of a callable object
+- Supports common classes, functions, and methods, including functions decorated with `functools.wraps`
+- Supports `functools.partial` and `functools.partialmethod` objects
+- Returns None for unsupported objects
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

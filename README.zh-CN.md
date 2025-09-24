@@ -8,6 +8,7 @@
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
     - [py3p.pstr](#py3ppstr)
+    - [py3p.getname](#py3pgetname)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -69,5 +70,10 @@
 | `bool` | `True` | 使用 `\t` 缩进 |
 | | 布尔表现为 `True` | 转换为 `str` 类型处理 |
 | | 布尔表现为 `False` | 返回值为单行字符串 |
+### **py3p.getname**
+#### 获取可调用对象的名字
+- 支持常见的类，函数和方法，包括被 `functools.wraps` 装饰过的函数
+- 支持 `functools.partial` 和 `functools.partialmethod` 对象
+- 对于不支持的对象，返回值为 None
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
