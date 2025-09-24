@@ -7,6 +7,7 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
+    - [py3p.pstr](#py3ppstr)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -53,5 +54,20 @@
     > 判断属性是否存在，相比 `builtins.hasattr`，禁用了类方法影响
 - `safe.setattr`
     > 设置属性值，相比 `builtins.setattr`，禁用了类方法影响
+### **py3p.pstr**
+#### `builtins.str` 函数的美化版本
+- 支持使用参数 `indent` 自定义缩进，对所有类型自动识别并处理
+- 推荐 `indent` 使用 `bool`、`int` 或 `str` 类型
+#### `indent` 识别
+| 类型 | 特殊值 | 处理 |
+|:---|:---|:---|
+| `list` `tuple` | | 连接为 `str` 类型处理 |
+| `bytes` `str` | 可被转换为 `float` 或 `int` | 转换为相应类型处理 |
+| `float` | | 转换为 `int` 类型处理 (向下取整) |
+| `int` | `> 0` | 指定缩进空格数量 |
+| `int` | `< 0` | 返回值为单行字符串 |
+| `bool` | `True` | 使用 `\t` 缩进 |
+| | 布尔表现为 `True` | 转换为 `str` 类型处理 |
+| | 布尔表现为 `False` | 返回值为单行字符串 |
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。

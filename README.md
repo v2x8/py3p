@@ -7,6 +7,7 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
+    - [py3p.pstr](#py3ppstr)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -53,5 +54,20 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
     > Checks if an attribute exists. Unlike `builtins.hasattr`, it ignores class-level overrides.
 - `safe.setattr`
     > Set an attribute. Unlike `builtins.setattr`, it ignores class-level overrides.
+### **py3p.pstr**
+#### A pretty version of the `builtins.str` function
+- Supports a custom `indent` parameter for indentation, automatically detecting and handling all types
+- Recommended `indent` types: `bool`, `int`, or `str`.
+#### `indent` handling
+| Type | Special Value | Behavior |
+|:---|:---|:---|
+| `list` `tuple` | | Joined into a `str` and handled as string |
+| `bytes` `str` | Convertible to `float` or `int` | Converted to the corresponding type |
+| `float` | | Converted to `int` (rounded down) |
+| `int` | `> 0` | Specifies the number of spaces for indentation |
+| `int` | `< 0` | Output is a single-line string |
+| `bool` | `True` | Uses `\t` for indentation |
+| | Boolean equivalent of `True` | Converted and handled as `str` |
+| | Boolean equivalent of `False` | Output is a single-line string |
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

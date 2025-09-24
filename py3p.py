@@ -44,7 +44,7 @@ class EmptyType:
     def __repr__(self):
         return 'Empty'
     def __reduce__(self):
-        return (self.__class__, ())
+        return (EmptyType, ())
 
 exports.prepare()
 exports.include('exports')
@@ -105,5 +105,78 @@ class safe:
         from builtins import object, type
         cls = type if safe.isinstance(obj, type) else object
         return cls.__setattr__(obj, name, value)
+
+def pstr(obj, indent=1):
+    from builtins import (  ValueError, bytes, dict, float, id, int,
+                            len, list, map, set, str, sorted, tuple )
+    if safe.isinstance(indent, list | tuple):
+        indent = ''.join(indent)
+    if not indent:
+        indent = ''
+    elif safe.isinstance(indent, bytes | float | int | str):
+        try:
+            indent = float(indent)
+        except ValueError:
+            pass
+        try:
+            indent = int(indent)
+        except ValueError:
+            pass
+        else:
+            indent = indent * ' '
+    elif indent is True:
+        indent = '\t'
+    else:
+        indent = str(indent)
+    suffix = ' ' if indent == '' else '\n'
+    memo = set()
+    def check(obj, cls):
+        if len(obj) == 0:
+            if ( result := (
+                '{}' if cls is dict else
+                '[]' if cls is list else
+                '()' if cls is tuple else
+                'set()' if cls is set else
+            None ) ) is not None: return result
+        if id(obj) in memo:
+            if ( result := (
+                '{...}' if cls is dict else
+                '[...]' if cls is list else
+                '(...)' if cls is tuple else
+                'set(...)' if cls is set else
+            None ) ) is not None: return result
+        memo.add( id(obj) )
+    def _pstr(obj):
+        if safe.isinstance(obj, dict):
+            if ( result := check(obj, dict) ) is not None:
+                return result
+            def tostr(item):
+                k, v = item
+                lines = _pstr(v).splitlines()
+                value = f'{suffix}{indent}'.join(lines)
+                return f'{indent}{k}: {value}'
+            data = f',{suffix}'.join( sorted( map( tostr, obj.items() ) ) )
+            return f'{{{suffix}{data}{suffix}}}'
+        def tostr(item):
+            lines = _pstr(item).splitlines()
+            value = f'{suffix}{indent}'.join(lines)
+            return f'{indent}{value}'
+        if safe.isinstance(obj, list):
+            if ( result := check(obj, list) ) is not None:
+                return result
+            data = f',{suffix}'.join( map(tostr, obj) )
+            return f'[{suffix}{data}{suffix}]'
+        if safe.isinstance(obj, set):
+            if ( result := check(obj, set) ) is not None:
+                return result
+            data = f',{suffix}'.join( sorted( map(tostr, obj) ) )
+            return f'{{{suffix}{data}{suffix}}}'
+        if safe.isinstance(obj, tuple):
+            if ( result := check(obj, tuple) ) is not None:
+                return result
+            data = f',{suffix}'.join( map(tostr, obj) )
+            return f'({suffix}{data}{suffix})'
+        return str(obj)
+    return _pstr(obj)
 
 exports.export()
