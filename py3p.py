@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from builtins import classmethod, set, staticmethod
+import sys
 
 class exports:
     _blacklist = set()
@@ -199,4 +200,86 @@ def getname(obj):
             return getname(func)
     return None
 
+def excepthook(exctype, value, traceback):
+    from builtins import (  complex, float, int, len, map, max,
+                            print, range, reversed, str, type )
+    from sys import stderr
+    text = name = safe.getattr(exctype, '__qualname__')
+    args = safe.getattr(value, 'args')
+    if args:
+        for arg in args:
+            if safe.isinstance(arg, complex | float | int):
+                lines = str( args if len(args) > 1 else arg )
+                msg = lines.replace('\n', '\\n')
+                text = f'{name}: {msg}'
+                break
+        else:
+            split = '\n' + ( len(name) + 2 ) * ' '
+            lines = '\n'.join( map(str, args) )
+            msg = split.join( lines.splitlines() )
+            text = f'{name}: {msg}'
+    print(text, file=stderr)
+    tracebacks = []
+    while traceback:
+        file = traceback.tb_frame.f_code.co_filename
+        func = traceback.tb_frame.f_code.co_qualname
+        line = str(traceback.tb_frame.f_lineno)
+        tracebacks.append( { 'file': file, 'func': func, 'line': line } )
+        traceback = traceback.tb_next
+    width_file = max( ( len( tb['file'] ) for tb in tracebacks ), default=0 )
+    width_line = max( ( len( tb['line'] ) for tb in tracebacks ), default=0 )
+    def perror(tracebacks):
+        for traceback in tracebacks:
+            file = traceback['file']
+            if file.startswith('<') and file.endswith('>'):
+                file = file.center(width_file)
+            else:
+                file = file.ljust(width_file)
+            line = traceback['line'].rjust(width_line)
+            func = traceback['func'].replace('.<locals>', '.-')
+            print(f'    at <{file}:{line}> {func}', file=stderr)
+    count = len(tracebacks)
+    for size in range( 1, count // 2 + 1 ):
+        for i in range( count - size * 2 + 1 ):
+            offset = i + size
+            block = tracebacks[i:offset]
+            for j in range(offset, count, size):
+                offset = j + size
+                if offset <= count:
+                    if tracebacks[j:offset] == block:
+                        continue
+                    block = None
+                break
+            if block is not None:
+                perror( reversed(block) )
+                print('    ...', file=stderr)
+                tracebacks = tracebacks[:i]
+                break
+        else:
+            continue
+        break
+    perror( reversed( tracebacks ) )
+    for k, v in { 'cause': 'cause', 'context': 'occur' }.items():
+        if ( exc := safe.getattr(value, f'__{k}__', None) ) is not None:
+            print(f'- {v} -', file=stderr)
+            traceback = safe.getattr(exc, '__traceback__')
+            excepthook( type(exc), exc, traceback )
+            return
+
+_excepthook_new = excepthook
+_excepthook_old = sys.excepthook
+
+def excepthook(exctype, value, traceback):
+    frame_globals = traceback.tb_frame.f_globals
+    if frame_globals.get('excepthook') is excepthook:
+        _excepthook_new(exctype, value, traceback)
+    elif getattr( frame_globals.get('py3p'), 'excepthook', None ) is excepthook:
+        _excepthook_new(exctype, value, traceback)
+    else:
+        _excepthook_old(exctype, value, traceback)
+
+sys.excepthook = excepthook
+
+exports.exclude(_excepthook_new)
+exports.exclude(_excepthook_old)
 exports.export()

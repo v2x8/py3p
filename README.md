@@ -9,6 +9,7 @@
     - [py3p.safe](#py3psafe)
     - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
+    - [py3p.excepthook](#py3pexcepthook)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -75,5 +76,22 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
 - Supports common classes, functions, and methods, including functions decorated with `functools.wraps`
 - Supports `functools.partial` and `functools.partialmethod` objects
 - Returns None for unsupported objects
+### **py3p.excepthook**
+#### Proxy for `sys.excepthook`
+- If the global variable `excepthook` or `py3p.excepthook` is valid, the modified `excepthook` will be used
+- If both `excepthook` and `py3p.excepthook` are invalid, the official default `excepthook` will be used
+#### Behavior
+> When an exception is raised, if the modified `excepthook` is used, the error message behaves as follows
+- If the exception has 0 arguments, only the exception type is displayed
+- If the exception has 1 argument, the error message displays the exception type and the argument string
+- If the exception has multiple arguments and includes any of `complex`, `float`, or `int`, the error message is condensed into a single line tuple
+- If the exception has multiple arguments and none of them are `complex`, `float`, or `int`, the error message is expanded into multi-line strings
+- When expanded into multiple lines, everything except the exception type is left-aligned
+> When an exception is raised, if the modified `excepthook` is used, the stack trace behaves as follows
+- After the error message, the stack trace is output in the format: `at <{file}:{line}> {func}`
+- `file` is left-aligned, but if it starts and ends with `<>`, it is center-aligned instead
+- `line` is right-aligned
+- `func` is left-aligned
+- When an infinite recursion causes a stack overflow, the output merges the repeating stack frames and prints them only once, followed by `...` to indicate omission.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

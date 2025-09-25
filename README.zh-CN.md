@@ -9,6 +9,7 @@
     - [py3p.safe](#py3psafe)
     - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
+    - [py3p.excepthook](#py3pexcepthook)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -75,5 +76,22 @@
 - 支持常见的类，函数和方法，包括被 `functools.wraps` 装饰过的函数
 - 支持 `functools.partial` 和 `functools.partialmethod` 对象
 - 对于不支持的对象，返回值为 None
+### **py3p.excepthook**
+#### 代理 `sys.excepthook`
+- 如果全局变量 `excepthook` 或 `py3p.excepthook` 有效，使用经过修改的 `excepthook`
+- 如果全局变量 `excepthook` 和 `py3p.excepthook` 无效，使用官方提供的 `excepthook`
+#### 行为
+> 抛出异常时，如果使用经过修改的 `excepthook`，报错信息会存在以下行为
+- 如果异常的参数数量为 0，报错信息只展示异常类型
+- 如果异常的参数数量为 1，报错信息展示异常类型和参数字符串
+- 如果异常有多个参数，且包含 `complex`、`float` 或 `int` 其一，报错信息会集中到一行输出为元组
+- 如果异常有多个参数，且不包含 `complex`、`float` 或 `int`，报错信息会展开为多行字符串输出
+- 报错信息展开为多行字符串输出时，除了异常类型以外其他部分左对齐
+> 抛出异常时，如果使用经过修改的 `excepthook`，报错堆栈会存在以下行为
+- 输出报错信息后，以 `at <{file}:{line}> {func}` 形式输出报错堆栈
+- `file` 以左对齐形式输出，但如果以 `<>` 开头和结尾，将以居中对齐形式输出
+- `line` 以右对齐形式输出
+- `func` 以左对齐形式输出
+- 输出时会合并因无限递归导致的栈溢出产生的周期性重复栈，只输出一次，之后用 `...` 省略
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
