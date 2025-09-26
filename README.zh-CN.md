@@ -11,6 +11,8 @@
     - [py3p.getname](#py3pgetname)
     - [py3p.excepthook](#py3pexcepthook)
     - [py3p.decorator](#py3pdecorator)
+    - [py3p.auto_decorator](#py3pauto_decorator)
+    - [py3p.decorators](#py3pdecorators)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -144,6 +146,22 @@ class ClassA:
 print(ClassA.method_a._decorators_) # output: (DecoratorA)
 print(ClassA.method_b._decorators_) # output: (DecoratorA)
 print(ClassA.method_c._decorators_) # AttributeError: 'function' object has no attribute '_decorators_'
+```
+### **py3p.decorators**
+#### 应用多个被 `py3p.decorator` 装饰过的装饰器到同一个对象
+- `@py3p.decorators` 需要至少一个参数
+- 有多个参数时，装饰顺序为从左到右依次装饰
+- `py3p.decorators` 不能被继承
+#### 行为示例
+``` python
+@py3p.decorators(decorator1, decorator2)
+def function(): pass
+```
+基本等价于
+``` python
+def function(): pass
+function = decorator1(function)
+function = decorator2(function)
 ```
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。

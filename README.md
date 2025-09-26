@@ -11,6 +11,8 @@
     - [py3p.getname](#py3pgetname)
     - [py3p.excepthook](#py3pexcepthook)
     - [py3p.decorator](#py3pdecorator)
+    - [py3p.auto_decorator](#py3pauto_decorator)
+    - [py3p.decorators](#py3pdecorators)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -144,6 +146,22 @@ class ClassA:
 print(ClassA.method_a._decorators_) # output: (DecoratorA)
 print(ClassA.method_b._decorators_) # output: (DecoratorA)
 print(ClassA.method_c._decorators_) # AttributeError: 'function' object has no attribute '_decorators_'
+```
+### **py3p.decorators**
+#### Apply multiple decorators (that were created with `py3p.decorator`) to the same object
+- `@py3p.decorators` requires at least one argument
+- When multiple arguments are given, they are applied from left to right in order
+- `py3p.decorators` cannot be subclassed
+#### Example behavior
+``` python
+@py3p.decorators(decorator1, decorator2)
+def function(): pass
+```
+is roughly equivalent to
+``` python
+def function(): pass
+function = decorator1(function)
+function = decorator2(function)
 ```
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

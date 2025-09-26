@@ -364,6 +364,27 @@ def auto_decorator(func):
         return func(obj, *args, **kwargs)
     return wrapper
 
+@decorator
+class decorators:
+    def __init__(self, *args):
+        from builtins import TypeError, set
+        for arg in args:
+            if not decorator in safe.getattr( arg, '_decorators_', set() ):
+                name = getname(arg)
+                raise TypeError(f'{name} is not a traceable decorator')
+        self.decorators = args
+    def __call__(self, obj):
+        for decorator in self.decorators:
+            obj = decorator(obj)
+        return obj
+    def __repr__(self):
+        from builtins import map
+        args = ', '.join( map(getname, self.decorators) )
+        return f'decorators({args})'
+    def __init_subclass__(cls, *args, **kwargs):
+        from builtins import TypeError
+        raise TypeError(f'type "decorators" is not an acceptable base type')
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()
