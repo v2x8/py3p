@@ -342,6 +342,28 @@ def decorator(obj):
             safe.setattr(obj, '__get__', wrapper)
     return obj
 
+@decorator
+def auto_decorator(func):
+    from builtins import callable, classmethod, type
+    from functools import wraps
+    func = decorator(func)
+    if safe.isinstance(func, type):
+        return func
+    @wraps(func)
+    def wrapper(obj, *args, **kwargs):
+        if safe.isinstance(obj, type):
+            __dict__ = safe.getattr(obj, '__dict__', None)
+            if __dict__ is not None:
+                for k, v in __dict__.items():
+                    if callable(v):
+                        safe.setattr( obj, k, func(v, *args, **kwargs) )
+                    if safe.isinstance(v, classmethod):
+                        attr = safe.getattr(v, '__func__')
+                        attr = func(attr, *args, **kwargs)
+                        safe.setattr( obj, k, classmethod(attr) )
+        return func(obj, *args, **kwargs)
+    return wrapper
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()

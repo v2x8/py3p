@@ -99,5 +99,51 @@
 - 被装饰的装饰器不能重复应用在同一个对象上
 - 被装饰的装饰器应用于有效对象上时，会在对象中添加装饰器链 `_decorators_`
 - 装饰器链只会记录被 `py3p.decorator` 装饰的装饰器，且可能被不合规的装饰器截断
+#### 行为示例
+`@DecoratorA` 是一个被 `@py3p.decorator` 装饰过的装饰器对象
+- `@DecoratorA` 首次装饰对象 `object_a`，会在 `object_a._decorators_` 中添加 `DecoratorA`
+- `@DecoratorA` 再次装饰对象 `object_a`，`object_a` 不会被二次装饰
+``` python
+@py3p.decorator
+def DecoratorA(arg):
+    print("@DecoratorA")
+    return arg
+
+@DecoratorA
+def object_a(): pass            # output: @DecoratorA
+
+print(object_a._decorators_)    # output: (DecoratorA)
+
+object_a = DecoratorA(object_a)
+
+print(object_a._decorators_)    # output: (DecoratorA)
+```
+### **py3p.auto_decorator**
+#### 应用于类装饰器函数的装饰器
+- 被装饰的装饰器函数应用于类上时，该类的所有可调用方法都会应用被装饰的装饰器函数
+- 如果把 `py3p.auto_decorator` 应用于类，它的行为与 `py3p.decorator` 相同
+- 由于静态方法的行为与函数类似，所以不被判定为被装饰类的方法
+#### 行为示例
+`@DecoratorA` 是一个被 `@py3p.auto_decorator` 装饰过的装饰器函数
+- `@DecoratorA` 装饰类 `ClassA`，`ClassA` 的常规方法 `method_a` 被自动装饰
+- `@DecoratorA` 装饰类 `ClassA`，`ClassA` 的类方法 `method_b` 被自动装饰
+- `@DecoratorA` 装饰类 `ClassA`，`ClassA` 的静态方法 `method_c` 没有被自动装饰
+``` python
+@py3p.auto_decorator
+def DecoratorA(arg):
+    return arg
+
+@DecoratorA
+class ClassA:
+    def method_a(self): pass
+    @classmethod
+    def method_b(cls): pass
+    @staticmethod
+    def method_c(): pass
+
+print(ClassA.method_a._decorators_) # output: (DecoratorA)
+print(ClassA.method_b._decorators_) # output: (DecoratorA)
+print(ClassA.method_c._decorators_) # AttributeError: 'function' object has no attribute '_decorators_'
+```
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。

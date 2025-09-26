@@ -99,5 +99,51 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
 - A decorated decorator cannot be applied repeatedly to the same object.
 - When a decorated decorator is applied to a valid object, it attaches a decorator chain `_decorators_` to that object.
 - The decorator chain only records decorators decorated with `py3p.decorator`, and it may be interrupted by non-compliant decorators.
+#### Behavior Example
+`@DecoratorA` is a decorator object wrapped by `@py3p.decorator`
+- When `@DecoratorA` decorates `object_a` for the first time, `DecoratorA` is added to `object_a._decorators_`
+- When `@DecoratorA` decorates `object_a` again, `object_a` will not be decorated twice
+``` python
+@py3p.decorator
+def DecoratorA(arg):
+    print("@DecoratorA")
+    return arg
+
+@DecoratorA
+def object_a(): pass            # output: @DecoratorA
+
+print(object_a._decorators_)    # output: (DecoratorA)
+
+object_a = DecoratorA(object_a)
+
+print(object_a._decorators_)    # output: (DecoratorA)
+```
+### **py3p.auto_decorator**
+#### A decorator applied to class-decorator functions
+- When a decorator function wrapped with `py3p.auto_decorator` is applied to a class, all of the class’s callable methods will be automatically decorated with that decorator
+- If `py3p.auto_decorator` is applied directly to a class, its behavior is the same as `py3p.decorator`
+- Since static methods behave like regular functions, they are not considered class methods and will not be automatically decorated
+#### Behavior Example
+`@DecoratorA` is a decorator function wrapped by `@py3p.auto_decorator`
+- When `@DecoratorA` decorates `ClassA`, its regular method `method_a` is automatically decorated
+- When `@DecoratorA` decorates `ClassA`, its class method `method_b` is automatically decorated
+- When `@DecoratorA` decorates `ClassA`, its static method `method_c` is not automatically decorated
+``` python
+@py3p.auto_decorator
+def DecoratorA(arg):
+    return arg
+
+@DecoratorA
+class ClassA:
+    def method_a(self): pass
+    @classmethod
+    def method_b(cls): pass
+    @staticmethod
+    def method_c(): pass
+
+print(ClassA.method_a._decorators_) # output: (DecoratorA)
+print(ClassA.method_b._decorators_) # output: (DecoratorA)
+print(ClassA.method_c._decorators_) # AttributeError: 'function' object has no attribute '_decorators_'
+```
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
