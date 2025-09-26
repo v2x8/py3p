@@ -10,6 +10,7 @@
     - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
     - [py3p.excepthook](#py3pexcepthook)
+    - [py3p.decorator](#py3pdecorator)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -93,5 +94,10 @@
 - `line` 以右对齐形式输出
 - `func` 以左对齐形式输出
 - 输出时会合并因无限递归导致的栈溢出产生的周期性重复栈，只输出一次，之后用 `...` 省略
+### **py3p.decorator**
+#### 应用于装饰器的装饰器
+- 被装饰的装饰器不能重复应用在同一个对象上
+- 被装饰的装饰器应用于有效对象上时，会在对象中添加装饰器链 `_decorators_`
+- 装饰器链只会记录被 `py3p.decorator` 装饰的装饰器，且可能被不合规的装饰器截断
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。

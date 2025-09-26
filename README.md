@@ -10,6 +10,7 @@
     - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
     - [py3p.excepthook](#py3pexcepthook)
+    - [py3p.decorator](#py3pdecorator)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -93,5 +94,10 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
 - `line` is right-aligned
 - `func` is left-aligned
 - When an infinite recursion causes a stack overflow, the output merges the repeating stack frames and prints them only once, followed by `...` to indicate omission.
+### **py3p.decorator**
+#### A decorator for decorators
+- A decorated decorator cannot be applied repeatedly to the same object.
+- When a decorated decorator is applied to a valid object, it attaches a decorator chain `_decorators_` to that object.
+- The decorator chain only records decorators decorated with `py3p.decorator`, and it may be interrupted by non-compliant decorators.
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

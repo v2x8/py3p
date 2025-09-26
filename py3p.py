@@ -280,6 +280,68 @@ def excepthook(exctype, value, traceback):
 
 sys.excepthook = excepthook
 
+def decorator(obj):
+    from builtins import callable, map, set, type
+    from functools import wraps
+    if ( Decorators := safe.getattr(decorator, 'Decorators', None) ) is None:
+        class Decorators:
+            def __init__(self):
+                self.data = set()
+            def __contains__(self, value):
+                while value is not None:
+                    if value in self.data:
+                        return True
+                    value = safe.getattr(value, '__wrapped__', None)
+                return False
+            def __repr__(self):
+                return '(' + ', '.join( map(getname, self.data) ) + ')'
+        decorator.Decorators = Decorators
+        decorator._decorators_ = Decorators()
+        decorator._decorators_.data.add(decorator)
+    def decoratable(obj, decorator):
+        if callable(obj):
+            decorators = safe.getattr(obj, '_decorators_', None)
+            if decorators is None:
+                return safe.hasattr(obj, '__dict__')
+            else:
+                return not decorator in decorators
+        return False
+    def decorate(obj, decorator):
+        decorators = safe.getattr(obj, '_decorators_', None)
+        if decorators is None:
+            decorators = Decorators()
+            safe.setattr(obj, '_decorators_', decorators)
+        decorators.data.add(decorator)
+    if decoratable(obj, decorator):
+        if not safe.isinstance(obj, type):
+            decorate(obj, decorator)
+            @wraps(obj)
+            def wrapper(arg, *args, **kwargs):
+                if decoratable(arg, obj):
+                    decorate(arg, obj)
+                    return obj(arg, *args, **kwargs)
+                return arg
+            return wrapper
+        if ( __call__ := safe.getattr(obj, '__call__', None) ) is not None:
+            decorate(obj, decorator)
+            @wraps(__call__)
+            def wrapper(self, arg, *args, **kwargs):
+                if decoratable(arg, obj):
+                    decorate(arg, obj)
+                    return __call__(self, arg, *args, **kwargs)
+                return arg
+            safe.setattr(obj, '__call__', wrapper)
+        if ( __get__ := safe.getattr(obj, '__get__', None) ) is not None:
+            decorate(obj, decorator)
+            @wraps(__get__)
+            def wrapper(self, arg, *args, **kwargs):
+                if decoratable(arg, obj):
+                    decorate(arg, obj)
+                    return __get__(self, arg, *args, **kwargs)
+                return arg
+            safe.setattr(obj, '__get__', wrapper)
+    return obj
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()
