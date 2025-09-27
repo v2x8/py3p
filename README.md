@@ -15,6 +15,7 @@
     - [py3p.decorators](#py3pdecorators)
     - [py3p.final](#py3pfinal)
     - [py3p.protected](#py3pprotected)
+    - [py3p.private](#py3pprivate)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -171,5 +172,8 @@ When attempting to inherit from a class decorated with `@final`, it raises `Type
 ### **py3p.protected**
 #### Access control decorator: Replacement Method Inheritance Chain
 The decorator takes a method-specific inheritance chain as its argument, which overrides the class-level inheritance chain
+### **py3p.private**
+#### Access control decorator: Prevent Method Inheritance
+Methods decorated with this will not be allowed to be called by objects of any class other than the current one. This does not apply to class methods or static methods
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

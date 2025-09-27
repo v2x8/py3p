@@ -434,6 +434,22 @@ class protected:
         args = ', '.join( map(getname, self.args) )
         return f'protected({args})'
 
+@decorator
+def private(func):
+    from builtins import AttributeError, type
+    from functools import wraps
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+        for k, v in safe.getattr( type(self), '__dict__', {} ).items():
+            while not (v is None or v is func):
+                v = safe.getattr(v, '__wrapped__', None)
+            if v is func:
+                return func(self, *args, **kwargs)
+        name = safe.getattr( type(self), '__qualname__' )
+        attr = safe.getattr(func, '__name__')
+        raise AttributeError(f'"{name}" object has no attribute "{attr}"')
+    return wrapper
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()

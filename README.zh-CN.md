@@ -15,6 +15,7 @@
     - [py3p.decorators](#py3pdecorators)
     - [py3p.final](#py3pfinal)
     - [py3p.protected](#py3pprotected)
+    - [py3p.private](#py3pprivate)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -171,5 +172,8 @@ function = decorator2(function)
 ### **py3p.protected**
 #### 权限装饰器，替换方法继承链
 装饰器参数为该方法特有的继承链，替代类继承链生效
+### **py3p.private**
+#### 权限装饰器，禁止方法被继承
+被装饰的方法将不允许被非当前类对象调用，不适用于类方法和静态方法
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
