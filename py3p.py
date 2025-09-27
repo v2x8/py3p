@@ -396,6 +396,44 @@ def final(cls):
         safe.setattr(cls, '__init_subclass__', __init_subclass__)
     return cls
 
+@decorators(decorator, final)
+class protected:
+    def __init__(self, *args):
+        from builtins import TypeError, type
+        for arg in args:
+            if not ( arg is None or safe.isinstance(arg, type) ):
+                name = getname(arg)
+                raise TypeError(f'{name} is not a type')
+        self.args = args
+    def __call__(self, func):
+        from builtins import AttributeError, type
+        from functools import wraps
+        if safe.isinstance(func, type):
+            return func
+        classes = self.args
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            func = wrapper.__wrapped__
+            for value in safe.getattr( type(self), '__dict__', {} ).values():
+                while not (value is None or value is func):
+                    value = safe.getattr(value, '__wrapped__', None)
+                if value is func:
+                    return func(self, *args, **kwargs)
+            attr = safe.getattr(func, '__name__')
+            for cls in classes:
+                if cls is None:
+                    return None
+                if ( func := safe.getattr(cls, attr, None) ) is not None:
+                    return func(self, *args, **kwargs)
+            name = safe.getattr( type(self), '__qualname__' )
+            msg = f'"{name}" object has no attribute "{attr}"'
+            raise AttributeError(msg)
+        return wrapper
+    def __repr__(self):
+        from builtins import map
+        args = ', '.join( map(getname, self.args) )
+        return f'protected({args})'
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()
