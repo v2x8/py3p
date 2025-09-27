@@ -13,6 +13,7 @@
     - [py3p.decorator](#py3pdecorator)
     - [py3p.auto_decorator](#py3pauto_decorator)
     - [py3p.decorators](#py3pdecorators)
+    - [py3p.final](#py3pfinal)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -163,5 +164,8 @@ def function(): pass
 function = decorator1(function)
 function = decorator2(function)
 ```
+### **py3p.final**
+#### Access control decorator: forbid class inheritance
+When attempting to inherit from a class decorated with `@final`, it raises `TypeError: type "{name}" is not an acceptable base type`
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

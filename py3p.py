@@ -385,6 +385,17 @@ class decorators:
         from builtins import TypeError
         raise TypeError(f'type "decorators" is not an acceptable base type')
 
+@decorator
+def final(cls):
+    from builtins import TypeError, type
+    if safe.isinstance(cls, type):
+        name = safe.getattr(cls, '__qualname__')
+        def __init_subclass__(cls, *args, **kwargs):
+            raise TypeError(f'type "{name}" is not an acceptable base type')
+        __init_subclass__.__qualname__ = f'{name}.__init_subclass__'
+        safe.setattr(cls, '__init_subclass__', __init_subclass__)
+    return cls
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()
