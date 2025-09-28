@@ -17,6 +17,7 @@
     - [py3p.final](#py3pfinal)
     - [py3p.protected](#py3pprotected)
     - [py3p.private](#py3pprivate)
+    - [py3p.monitor](#py3pmonitor)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -179,5 +180,24 @@ The decorator takes a method-specific inheritance chain as its argument, which o
 ### **py3p.private**
 #### Access control decorator: Prevent Method Inheritance
 Methods decorated with this will not be allowed to be called by objects of any class other than the current one. This does not apply to class methods or static methods
+### **py3p.monitor**
+#### Decorator: Runtime Type Monitor
+> During function calls, it checks whether the input arguments and the return value match the type annotations
+- When applied to a class, it automatically applies to all methods of the class
+- Type annotations can be nested
+- If unsupported types appear in type annotations, it raises the official error message
+- If data types conflict with type annotations, it raises a detailed error message
+#### Recommended Type Annotations
+| Annotation | Meaning |
+| :---: | :---: |
+| `None` | Only allows the argument to be `None` |
+| `str` | Dynamically parsed type |
+| `type` | Single type check |
+| `tuple` `Union` | Any one of them is acceptable |
+| `list` | All elements must satisfy the condition |
+| `set` | Hashable valid values enumeration |
+| `range` | Integer value range |
+| `function` | Custom validator function |
+| `dict` | Fine-grained annotation applied only to `**` parameters |
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

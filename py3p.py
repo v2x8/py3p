@@ -464,6 +464,153 @@ def private(func):
         raise AttributeError(f'"{name}" object has no attribute "{attr}"')
     return wrapper
 
+@auto_decorator
+def monitor(func):
+    from builtins import (  TypeError, all, callable, dict,
+                            eval, len, list, map, min, next,
+                            range, repr, set, str, tuple, type )
+    from inspect import Parameter, signature, stack
+    from types import MethodType, FunctionType
+    from typing import Iterable
+    from functools import wraps
+    def check(obj, classes, f_locals={}):
+        if classes is None:
+            return obj is None
+        mro_cls = safe.getattr( type(classes), '__mro__' )
+        if str in mro_cls:
+            classes = eval(classes, locals=f_locals)
+            return check(obj, classes, f_locals)
+        mro_obj = safe.getattr( type(obj), '__mro__' )
+        if list in mro_cls:
+            return all( check(obj, item, f_locals) for item in classes )
+        if range in mro_cls:
+            return int in mro_obj and obj in classes
+        if set in mro_cls:
+            return hashable(obj) and obj in classes
+        if FunctionType in mro_cls:
+            return classes(obj)
+        return safe.isinstance(obj, classes)
+    def parse(classes, f_locals={}):
+        if classes is None:
+            return 'None'
+        if safe.isinstance(classes, list):
+            return '[' + ', '.join( map(parse, classes) ) + ']'
+        if safe.isinstance(classes, tuple):
+            return '(' + ', '.join( map(parse, classes) ) + ')'
+        if safe.isinstance(classes, str):
+            classes = eval(classes, locals=f_locals)
+            return repr(classes)
+        if safe.isinstance(classes, type):
+            return safe.getattr(classes, '__qualname__')
+        if callable(classes):
+            name = getname(classes)
+            return f'{name}()'
+        return repr(classes)
+    def getcls(obj):
+        if safe.isinstance(obj, str):
+            result = repr(f'"{obj}')[2:-1]
+            return f"str:'{result}'"
+        if safe.isinstance(obj, type):
+            result = safe.getattr(obj, '__name__')
+            return f'type:{result}'
+        result = parse( type(obj) )
+        return result if safe.isinstance(obj, Iterable) else f'{result}:{obj}'
+    if safe.isinstance(func, type):
+        return func
+    obj = func
+    while True:
+        if safe.isinstance(obj, MethodType):
+            obj = safe.getattr(obj, '__func__')
+        elif ( wrapped := safe.getattr(obj, '__wrapped__', None) ) is not None:
+            obj = wrapped
+        else:
+            break
+    if ( code := safe.getattr(obj, '__code__', None) ) is None:
+        return func
+    if ( annos := safe.getattr(obj, '__annotations__', None) ) is None:
+        return func
+    if ( parc_ := safe.getattr(code, 'co_argcount', None) ) is None:
+        return func
+    if ( vars_ := safe.getattr(code, 'co_varnames', None) ) is None:
+        return func
+    defs_ = safe.getattr(obj, '__defaults__')
+    defc_ = 0 if defs_ is None else len(defs_)
+    pars = signature(obj).parameters.values()
+    args_gen = ( v.name for v in pars if v.kind == Parameter.VAR_POSITIONAL )
+    kwargs_gen = ( v.name for v in pars if v.kind == Parameter.VAR_KEYWORD )
+    func_name = getname(obj)
+    args_name = next(args_gen, None)
+    kwargs_name = next(kwargs_gen, None)
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        f_locals = stack()[1].frame.f_locals
+        argc = len(args)
+        if args_name is None:
+            if argc > parc_:
+                msg = ( f'{func_name}() takes {parc_} positional' +
+                        f' arguments but {argc} were given'       )
+                raise TypeError(msg)
+            if argc < ( minc := parc_ - defc_ ):
+                miss = [ repr( vars_[i] ) for i in range(argc, minc) ]
+                args = miss[-1]
+                if ( argc := len(miss) ) != 1:
+                    args = ', '.join( miss[:-1] + [f'and {args}'] )
+                msg = ( f'{func_name}() is missing at least {argc}' +
+                        f' required positional arguments: {args}'  )
+                raise TypeError(msg)
+        for i in range( min(argc, parc_) ):
+            name = vars_[i]
+            if name in annos and not check(args[i], annos[name], f_locals):
+                cls = getcls( args[i] )
+                classes = parse(annos[name], f_locals)
+                msg = ( f'argument "{name}" ({cls}) is '  +
+                        f'not an instance like {classes}' )
+                raise TypeError(msg)
+        if args_name is not None and args_name in annos:
+            anno = annos[args_name]
+            for i in range(parc_, argc):
+                if not check(args[i], anno, f_locals):
+                    cls = getcls( args[i] )
+                    classes = parse(anno, f_locals)
+                    index = i - parc_
+                    msg = ( f'item {index} of argument "{args_name}" '   +
+                            f'({cls}) is not an instance like {classes}' )
+                    raise TypeError(msg)
+        if kwargs:
+            for k, v in kwargs.items():
+                if k in vars_:
+                    if k in annos and not check(v, annos[k], f_locals):
+                        cls = getcls(v)
+                        classes = parse(annos[k], f_locals)
+                        msg = ( f'argument "{k}" ({cls}) is not' +
+                                f' an instance like {classes}'   )
+                        raise TypeError(msg)
+                elif kwargs_name is None:
+                    msg = f'{func_name}() got unexpected keyword argument(s)'
+                    raise TypeError(msg)
+                elif kwargs_name in annos:
+                    anno = annos[kwargs_name]
+                    if safe.isinstance(anno, dict) and k in anno:
+                        anno = anno[k]
+                    if not check(v, anno, f_locals):
+                        cls = getcls(v)
+                        classes = parse(anno, f_locals)
+                        msg = ( f'value of key "{k}" of argument' +
+                                f' "{kwargs_name}" ({cls}) is '   +
+                                f'not an instance like {classes}' )
+                        raise TypeError(msg)
+        result = obj(*args, **kwargs)
+        if 'return' in annos:
+            anno = annos['return']
+            if not check(result, anno, f_locals):
+                cls = getcls(result)
+                classes = parse(anno, f_locals)
+                msg = ( f'the return value ({cls}) is '   +
+                        f'not an instance like {classes}' )
+                raise TypeError(msg)
+        return result
+    return wrapper
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()
