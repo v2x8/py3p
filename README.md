@@ -7,8 +7,9 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
-    - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
+    - [py3p.hashable](#py3phashable)
+    - [py3p.pstr](#py3ppstr)
     - [py3p.excepthook](#py3pexcepthook)
     - [py3p.decorator](#py3pdecorator)
     - [py3p.auto_decorator](#py3pauto_decorator)
@@ -62,6 +63,14 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
     > Checks if an attribute exists. Unlike `builtins.hasattr`, it ignores class-level overrides.
 - `safe.setattr`
     > Set an attribute. Unlike `builtins.setattr`, it ignores class-level overrides.
+### **py3p.getname**
+#### Get the name of a callable object
+- Supports common classes, functions, and methods, including functions decorated with `functools.wraps`
+- Supports `functools.partial` and `functools.partialmethod` objects
+- Returns None for unsupported objects
+### **py3p.hashable**
+#### Determine whether an object is hashable
+Usually, immutable objects are hashable.
 ### **py3p.pstr**
 #### A pretty version of the `builtins.str` function
 - Supports a custom `indent` parameter for indentation, automatically detecting and handling all types
@@ -77,11 +86,6 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
 | `bool` | `True` | Uses `\t` for indentation |
 | | Boolean equivalent of `True` | Converted and handled as `str` |
 | | Boolean equivalent of `False` | Output is a single-line string |
-### **py3p.getname**
-#### Get the name of a callable object
-- Supports common classes, functions, and methods, including functions decorated with `functools.wraps`
-- Supports `functools.partial` and `functools.partialmethod` objects
-- Returns None for unsupported objects
 ### **py3p.excepthook**
 #### Proxy for `sys.excepthook`
 - If the global variable `excepthook` or `py3p.excepthook` is valid, the modified `excepthook` will be used

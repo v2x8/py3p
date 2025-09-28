@@ -7,8 +7,9 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
-    - [py3p.pstr](#py3ppstr)
     - [py3p.getname](#py3pgetname)
+    - [py3p.hashable](#py3phashable)
+    - [py3p.pstr](#py3ppstr)
     - [py3p.excepthook](#py3pexcepthook)
     - [py3p.decorator](#py3pdecorator)
     - [py3p.auto_decorator](#py3pauto_decorator)
@@ -62,6 +63,14 @@
     > 判断属性是否存在，相比 `builtins.hasattr`，禁用了类方法影响
 - `safe.setattr`
     > 设置属性值，相比 `builtins.setattr`，禁用了类方法影响
+### **py3p.getname**
+#### 获取可调用对象的名字
+- 支持常见的类，函数和方法，包括被 `functools.wraps` 装饰过的函数
+- 支持 `functools.partial` 和 `functools.partialmethod` 对象
+- 对于不支持的对象，返回值为 None
+### **py3p.hashable**
+#### 判断一个对象是否可以哈希
+通常不可变对象都是可哈希的
 ### **py3p.pstr**
 #### `builtins.str` 函数的美化版本
 - 支持使用参数 `indent` 自定义缩进，对所有类型自动识别并处理
@@ -77,11 +86,6 @@
 | `bool` | `True` | 使用 `\t` 缩进 |
 | | 布尔表现为 `True` | 转换为 `str` 类型处理 |
 | | 布尔表现为 `False` | 返回值为单行字符串 |
-### **py3p.getname**
-#### 获取可调用对象的名字
-- 支持常见的类，函数和方法，包括被 `functools.wraps` 装饰过的函数
-- 支持 `functools.partial` 和 `functools.partialmethod` 对象
-- 对于不支持的对象，返回值为 None
 ### **py3p.excepthook**
 #### 代理 `sys.excepthook`
 - 如果全局变量 `excepthook` 或 `py3p.excepthook` 有效，使用经过修改的 `excepthook`

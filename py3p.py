@@ -107,6 +107,33 @@ class safe:
         cls = type if safe.isinstance(obj, type) else object
         return cls.__setattr__(obj, name, value)
 
+def getname(obj):
+    from functools import partial, partialmethod
+    from types import MethodType
+    if ( result := safe.getattr(obj, '__qualname__', None) ) is not None:
+        return result
+    if ( result := safe.getattr(obj, '__name__', None) ) is not None:
+        return result
+    if safe.isinstance(obj, partial | partialmethod):
+        if ( wrapped := safe.getattr(obj, '__wrapped__', None) ) is not None:
+            return getname(wrapped)
+        if ( keywords := safe.getattr(obj, 'keywords', None) ) is not None:
+            if ( wrapped := keywords.get('wrapped') ) is not None:
+                return getname(wrapped)
+        if ( func := safe.getattr(obj, 'func', None) ) is not None:
+            return getname(func)
+    if safe.isinstance(obj, MethodType):
+        if ( func := safe.getattr(obj, '__func__', None) ) is not None:
+            return getname(func)
+    return None
+
+def hashable(obj):
+    try:
+        hash(obj)
+        return True
+    except TypeError:
+        return False
+
 def pstr(obj, indent=1):
     from builtins import (  ValueError, bytes, dict, float, id, int,
                             len, list, map, set, str, sorted, tuple )
@@ -179,26 +206,6 @@ def pstr(obj, indent=1):
             return f'({suffix}{data}{suffix})'
         return str(obj)
     return _pstr(obj)
-
-def getname(obj):
-    from functools import partial, partialmethod
-    from types import MethodType
-    if ( result := safe.getattr(obj, '__qualname__', None) ) is not None:
-        return result
-    if ( result := safe.getattr(obj, '__name__', None) ) is not None:
-        return result
-    if safe.isinstance(obj, partial | partialmethod):
-        if ( wrapped := safe.getattr(obj, '__wrapped__', None) ) is not None:
-            return getname(wrapped)
-        if ( keywords := safe.getattr(obj, 'keywords', None) ) is not None:
-            if ( wrapped := keywords.get('wrapped') ) is not None:
-                return getname(wrapped)
-        if ( func := safe.getattr(obj, 'func', None) ) is not None:
-            return getname(func)
-    if safe.isinstance(obj, MethodType):
-        if ( func := safe.getattr(obj, '__func__', None) ) is not None:
-            return getname(func)
-    return None
 
 def excepthook(exctype, value, traceback):
     from builtins import (  complex, float, int, len, map, max,
