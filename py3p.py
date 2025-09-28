@@ -66,8 +66,11 @@ class safe:
         return result
     @staticmethod
     def isinstance(obj, class_or_tuple):
-        from builtins import TypeError, any, object, tuple, type
+        from builtins import AttributeError, TypeError, any, object, tuple, type
         from types import UnionType
+        import typing
+        if class_or_tuple is typing.Any:
+            return True
         if class_or_tuple is type or safe.isinstance(class_or_tuple, type):
             mro = type.__getattribute__( type(obj), '__mro__' )
             return class_or_tuple in mro
@@ -76,6 +79,10 @@ class safe:
         if safe.isinstance(class_or_tuple, UnionType):
             args = object.__getattribute__(class_or_tuple, '__args__')
             return safe.isinstance(obj, args)
+        try:
+            check = object.__getattribute__(class_or_tuple, '__instancecheck__')
+            return check(obj)
+        except AttributeError: pass
         msg = 'isinstance() arg 2 must be a type, a tuple of types, or a union'
         raise TypeError(msg)
     @staticmethod
