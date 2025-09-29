@@ -19,6 +19,7 @@
     - [py3p.protected](#py3pprotected)
     - [py3p.private](#py3pprivate)
     - [py3p.monitor](#py3pmonitor)
+    - [py3p.NameSpace](#py3pnamespace)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -206,5 +207,20 @@ Methods decorated with this will not be allowed to be called by objects of any c
 | `range` | Integer value range |
 | `function` | Custom validator function |
 | `dict` | Fine-grained annotation applied only to `**` parameters |
+### **py3p.NameSpace**
+#### Enhanced `dict`
+- Inherits from `dict` and retains all basic `dict` functionalities
+- Allows data access via attribute-style notation, following a data-first access rule
+- When accessing nested data, if any parent namespace in the path does not exist, it is automatically created
+- Assigning `None` to a key automatically deletes the corresponding data, keeping the namespace clean
+- Provides a `prune()` method to recursively remove empty `NameSpace` objects
+- Compatible with type checks using `@py3p.monitor`
+#### Access Rules
+| Data Exists | Attribute Exists | Get Behavior | Set Behavior |
+| :---: | :---: | :--- | :--- |
+| ✅ | ✅ | Returns the data | Updates the data |
+| ✅ | ❌ | Returns the data | Updates the data |
+| ❌ | ✅ | Returns the attribute | Creates the data |
+| ❌ | ❌ | Returns a newly created empty `NameSpace` | Creates the data |
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

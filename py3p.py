@@ -672,6 +672,91 @@ def monitor(func):
         return result
     return wrapper
 
+@monitor
+class NameSpace(dict):
+    def __eq__(self, value):
+        from builtins import super
+        return super().__eq__( {} if value is None else value )
+    def __delitem__(self, name:str):
+        from builtins import super
+        if name in self:
+            super().__delitem__(name)
+    def __getitem__(self, name:str):
+        from builtins import super, type
+        if not name in self:
+            super().__setitem__( name, type(self)() )
+        return super().__getitem__(name)
+    def __setitem__(self, name:str, value):
+        from builtins import super
+        super().__setitem__(name, value)
+        if value is None:
+            super().__delitem__(name)
+    def __delattr__(self, name:str):
+        del self[name]
+    def __setattr__(self, name:str, value):
+        self[name] = value
+    def __getattr__(self, name:str):
+        if not name in self and safe.hasattr(self, name):
+            return safe.getattr(self, name)
+        return self[name]
+    def __repr__(self):
+        from builtins import id, repr, type
+        def _repr(obj, memo):
+            args = []
+            for k, v in safe.getattr(obj, 'items')():
+                k = repr(f'"{k}')[2:-1]
+                if safe.isinstance(v, NameSpace):
+                    name = safe.getattr( type(v), '__qualname__' )
+                    if not id(v) in memo:
+                        memo.add( id(v) )
+                        items = _repr(v, memo)
+                        memo.remove( id(v) )
+                        args.append(f"'{k}': {name}({items})")
+                    else:
+                        args.append(f"'{k}': {name}({{...}})")
+                else:
+                    v = repr(v)
+                    args.append(f"'{k}': {v}")
+            result = ', '.join( arg for arg in args )
+            if result and safe.isinstance(obj, NameSpace):
+                return f'{{{result}}}'
+            else:
+                return result
+        name = safe.getattr( type(self), '__qualname__' )
+        args = _repr(self, { id(self) })
+        return f'{name}({args})'
+    def __str__(self):
+        from builtins import id, repr
+        def _str(obj, memo):
+            args = []
+            for k, v in safe.getattr(obj, 'items')():
+                k = repr(f'"{k}')[2:-1]
+                if safe.isinstance(v, NameSpace):
+                    if not id(v) in memo:
+                        memo.add( id(v) )
+                        items = _str(v, memo)
+                        memo.remove( id(v) )
+                        args.append(f"'{k}': {{{items}}}")
+                    else:
+                        args.append(f"'{k}': {{...}}")
+                else:
+                    v = repr(v)
+                    args.append(f"'{k}': {v}")
+            return ', '.join( arg for arg in args )
+        args = _str(self, { id(self) })
+        return f'{{{args}}}'
+    def prune(self):
+        from builtins import id, list, set
+        memo = set()
+        def _prune(namespace):
+            if not id(namespace) in memo:
+                memo.add( id(namespace) )
+                for k, v in list( safe.getattr(namespace, 'items')() ):
+                    if safe.isinstance(v, NameSpace):
+                        namespace[k] = _prune(v)
+            return None if namespace == {} else namespace
+        _prune(self)
+
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
 exports.export()

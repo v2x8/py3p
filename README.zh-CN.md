@@ -19,6 +19,7 @@
     - [py3p.protected](#py3pprotected)
     - [py3p.private](#py3pprivate)
     - [py3p.monitor](#py3pmonitor)
+    - [py3p.NameSpace](#py3pnamespace)
 - [许可](#许可)
 ## 简介
 本仓库是一个基于 python 3.10+ 标准库的增强型扩展工具集。
@@ -206,5 +207,20 @@ function = decorator2(function)
 | `range` | 整数数值范围 |
 | `function` | 自定义验证器函数 |
 | `dict` | 仅应用于 `**` 参数的精细化注解 |
+### **py3p.NameSpace**
+#### 增强型 `dict`
+- 继承自 `dict`，具有 `dict` 的基本特性
+- 可以像访问属性一样访问数据，遵循数据优先访问规则
+- 访问深层数据时，如果路径中的父命名空间不存在会自动创建
+- 赋值 `None` 会自动删除对应的数据，保持命名空间整洁
+- 提供 `prune()` 方法，用于递归清理空的 `NameSpace`
+- 接受 `@py3p.monitor` 的类型检查
+#### 访问规则
+| 数据存在 | 属性存在 | 获取行为 | 赋值行为 |
+| :---: | :---: | :--- | :--- |
+| ✅ | ✅ | 返回数据 | 更新数据 |
+| ✅ | ❌ | 返回数据 | 更新数据 |
+| ❌ | ✅ | 返回属性 | 创建数据 |
+| ❌ | ❌ | 返回新建的空 `NameSpace` | 创建数据 |
 ## 许可
 本项目使用 **MIT License** 开源许可协议，详情参见 [LICENSE](LICENSE) 文件。
