@@ -66,23 +66,53 @@ class safe:
         return result
     @staticmethod
     def isinstance(obj, class_or_tuple):
-        from builtins import AttributeError, TypeError, any, object, tuple, type
-        from types import UnionType
-        import typing
-        if class_or_tuple is typing.Any:
+        from builtins import TypeError, all, any, dict, len, object, range, tuple, type
+        from types import UnionType, GenericAlias
+        from typing import Any
+        if class_or_tuple is Any:
             return True
-        if class_or_tuple is type or safe.isinstance(class_or_tuple, type):
+        mro = type.__getattribute__( type(class_or_tuple), '__mro__' )
+        if type in mro:
             mro = type.__getattribute__( type(obj), '__mro__' )
             return class_or_tuple in mro
-        if safe.isinstance(class_or_tuple, tuple):
+        if tuple in mro:
             return any( safe.isinstance(obj, cls) for cls in class_or_tuple )
-        if safe.isinstance(class_or_tuple, UnionType):
+        if UnionType in mro:
             args = object.__getattribute__(class_or_tuple, '__args__')
             return safe.isinstance(obj, args)
-        try:
-            check = object.__getattribute__(class_or_tuple, '__instancecheck__')
-            return check(obj)
-        except AttributeError: pass
+        if GenericAlias in mro:
+            origin = object.__getattribute__(class_or_tuple, '__origin__')
+            if not safe.isinstance(obj, origin):
+                return False
+            args = object.__getattribute__(class_or_tuple, '__args__')
+            if safe.isinstance(origin, tuple):
+                start = 0
+                end = len(obj)
+                last = None
+                def condition():
+                    return start < end and safe.isinstance(obj[start], last)
+                for arg in args:
+                    if arg is ...:
+                        while condition():
+                            start += 1
+                    elif start < end and safe.isinstance(obj[start], arg):
+                        start += 1
+                        last = arg
+                    else:
+                        return False
+                if start != end:
+                    return False
+            if safe.isinstance(origin, dict):
+                if len(args) != 2:
+                    return False
+                for k, v in obj.items():
+                    if not safe.isinstance(k, args[0]):
+                        return False
+                    if not safe.isinstance(v, args[1]):
+                        return False
+            return all( safe.isinstance(item, args) for item in obj )
+        if safe.hasattr(class_or_tuple, '__instancecheck__'):
+            return class_or_tuple.__instancecheck__(obj)
         msg = 'isinstance() arg 2 must be a type, a tuple of types, or a union'
         raise TypeError(msg)
     @staticmethod
@@ -469,10 +499,10 @@ def monitor(func):
     from builtins import (  TypeError, all, callable, dict,
                             eval, len, list, map, min, next,
                             range, repr, set, str, tuple, type )
-    from inspect import Parameter, signature, stack
-    from types import MethodType, FunctionType
-    from typing import Iterable
     from functools import wraps
+    from inspect import Parameter, signature, stack
+    from types import FunctionType, GenericAlias, MethodType
+    from typing import Iterable
     def check(obj, classes, f_locals={}):
         if classes is None:
             return obj is None
@@ -502,7 +532,7 @@ def monitor(func):
             return repr(classes)
         if safe.isinstance(classes, type):
             return safe.getattr(classes, '__qualname__')
-        if callable(classes):
+        if callable(classes) and not safe.isinstance(classes, GenericAlias):
             name = getname(classes)
             return f'{name}()'
         return repr(classes)
@@ -513,7 +543,26 @@ def monitor(func):
         if safe.isinstance(obj, type):
             result = safe.getattr(obj, '__name__')
             return f'type:{result}'
-        result = parse( type(obj) )
+        def _getcls(obj):
+            def typeof(obj):
+                return parse( type(obj) )
+            if safe.isinstance(obj, str):
+                return 'str'
+            if safe.isinstance(obj, tuple):
+                result = ', '.join( map(_getcls, obj) )
+                return f'tuple[{result}]'
+            if safe.isinstance(obj, dict):
+                keys = set( map( _getcls, obj.keys() ) )
+                types_k = ' | '.join( sorted(keys) )
+                values = set( map( _getcls, obj.values() ) )
+                types_v = ' | '.join( sorted(values) )
+                return f'dict[{types_k}, {types_v}]'
+            if safe.isinstance(obj, Iterable):
+                types = ', '.join( sorted( set( map(_getcls, obj) ) ) )
+                result = typeof(obj)
+                return f'{result}[{types}]'
+            return typeof(obj)
+        result = _getcls(obj)
         return result if safe.isinstance(obj, Iterable) else f'{result}:{obj}'
     if safe.isinstance(func, type):
         return func
