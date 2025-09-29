@@ -20,6 +20,8 @@
     - [py3p.private](#py3pprivate)
     - [py3p.monitor](#py3pmonitor)
     - [py3p.NameSpace](#py3pnamespace)
+    - [py3p.load](#py3pload)
+    - [py3p.save](#py3psave)
 - [License](#license)
 ## Introduction
 The repository is an enhanced toolkit extending the python 3.10+ standard library.
@@ -214,7 +216,7 @@ Methods decorated with this will not be allowed to be called by objects of any c
 - When accessing nested data, if any parent namespace in the path does not exist, it is automatically created
 - Assigning `None` to a key automatically deletes the corresponding data, keeping the namespace clean
 - Provides a `prune()` method to recursively remove empty `NameSpace` objects
-- Compatible with type checks using `@py3p.monitor`
+- Supports type checking via `@py3p.monitor`
 #### Access Rules
 | Data Exists | Attribute Exists | Get Behavior | Set Behavior |
 | :---: | :---: | :--- | :--- |
@@ -222,5 +224,30 @@ Methods decorated with this will not be allowed to be called by objects of any c
 | ✅ | ❌ | Returns the data | Updates the data |
 | ❌ | ✅ | Returns the attribute | Creates the data |
 | ❌ | ❌ | Returns a newly created empty `NameSpace` | Creates the data |
+### **py3p.load**
+#### Reading Files and Directories
+> Supports type checking via `@py3p.monitor`
+- Parameter `path: str` specifies the file or directory to read
+- Parameter `*args: str` specifies file encoding or hash algorithms
+#### Behavior
+> If `path` is a directory, it recursively retrieves the directory structure and file contents, returning a `dict`:
+- For directories, the directory name is used as the `key`, and the recursively read directory contents are used as the `value`
+- For files, the file name is used as the `key`, and the file content is read according to the method specified in `args` as the `value`
+> If `path` is a file, it will try to read the file or compute its hash according to the `args` provided, in order:
+- If no arguments are provided or all arguments are `None`, the file is read as bytes and returned as a hexadecimal string
+- If an argument is a hash algorithm, the file’s hash is computed using that algorithm
+- If an argument is an encoding, the file is read as a string using that encoding
+- If a decoding error occurs with a specified encoding, the next argument is tried
+- If all attempts fail, the function returns `None`
+### **py3p.save**
+#### Saving Files and Directories
+> Supports type checking via `@py3p.monitor`
+- Parameter `root: str` specifies the path where the file or directory will be saved
+- Parameter `data` specifies the file or directory data to save
+- Parameter `hexdigest: bool` specifies whether to treat the data as a hexadecimal string and save it as binary, default is `False`
+#### Behavior
+- For `/` and `\` in `root`, URL encoding is applied to ensure correct results
+- If `data` is a `dict`, it is recursively saved as a directory, preserving the directory structure
+- If `data` is not a `dict`, it is converted to a string and saved as a file; `hexdigest` determines whether to attempt decoding it from a hexadecimal string
 ## License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

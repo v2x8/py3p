@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from builtins import classmethod, set, staticmethod
+from builtins import bool, classmethod, set, staticmethod, str
 import sys
 
 class exports:
@@ -66,7 +66,8 @@ class safe:
         return result
     @staticmethod
     def isinstance(obj, class_or_tuple):
-        from builtins import TypeError, all, any, dict, len, object, range, tuple, type
+        from builtins import (  TypeError, all, any, dict, len,
+                                object, range, tuple, type    )
         from types import UnionType, GenericAlias
         from typing import Any
         if class_or_tuple is Any:
@@ -327,12 +328,14 @@ _excepthook_old = sys.excepthook
 
 def excepthook(exctype, value, traceback):
     frame_globals = traceback.tb_frame.f_globals
+    py3p = frame_globals.get('py3p')
     if frame_globals.get('excepthook') is excepthook:
         _excepthook_new(exctype, value, traceback)
-    elif getattr( frame_globals.get('py3p'), 'excepthook', None ) is excepthook:
+    elif py3p is not None and getattr(py3p, 'excepthook', None) is excepthook:
         _excepthook_new(exctype, value, traceback)
     else:
         _excepthook_old(exctype, value, traceback)
+
 
 sys.excepthook = excepthook
 
@@ -756,6 +759,56 @@ class NameSpace(dict):
                         namespace[k] = _prune(v)
             return None if namespace == {} else namespace
         _prune(self)
+
+@monitor
+def load(path:str, *args:str):
+    from builtins import open
+    import hashlib, os
+    if os.path.isdir(path):
+        result = {}
+        for file in os.listdir(path):
+            name = os.path.join(path, file)
+            result[file] = load(name, *args)
+        return result
+    for arg in ( args or (None,) ):
+        if arg is None:
+            with open(path, 'rb') as f:
+                return f.read().hex().upper()
+        if arg.lower() in hashlib.algorithms_guaranteed:
+            result = safe.getattr(hashlib, arg)()
+            with open(path, 'rb') as f:
+                while ( data := f.read(4096) ):
+                    result.update(data)
+            return result.hexdigest().upper()
+        try:
+            with open(path, 'r', encoding=arg) as f:
+                return f.read()
+        except UnicodeDecodeError:
+            continue
+    return None
+
+@monitor
+def save(root:str, data, hexdigest:bool=False):
+    from builtins import bytes, dict, open, str
+    import os
+    if safe.isinstance(data, dict):
+        os.makedirs(root, exist_ok=True)
+        for k, v in data.items():
+            name = str(k).replace('/', '%2F').replace('\\', '%5C')
+            path = os.path.join(root, name)
+            save(path, v, hexdigest)
+        return
+    data = str(data)
+    if hexdigest:
+        try:
+            with open(root, 'wb') as f:
+                f.write( bytes.fromhex(data) )
+        except UnicodeDecodeError:
+            pass
+        else:
+            return
+    with open(root, 'w', encoding='utf-8') as f:
+        f.write(data)
 
 exports.exclude(_excepthook_new)
 exports.exclude(_excepthook_old)
