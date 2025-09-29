@@ -7,6 +7,7 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
+    - [py3p.flatten](#py3pflatten)
     - [py3p.getname](#py3pgetname)
     - [py3p.hashable](#py3phashable)
     - [py3p.pstr](#py3ppstr)
@@ -64,6 +65,12 @@ The repository is an enhanced toolkit extending the python 3.10+ standard librar
     > Checks if an attribute exists. Unlike `builtins.hasattr`, it ignores class-level overrides.
 - `safe.setattr`
     > Set an attribute. Unlike `builtins.setattr`, it ignores class-level overrides.
+### **py3p.flatten**
+#### Flatten lists or tuples
+- Accepts any number of arguments and automatically combines them into a new tuple as the starting point for flattening
+- Only lists and tuples are recursively flattened, other iterable objects remain unchanged
+- In the presence of self-references or cross-references, only the outermost occurrence is expanded, preventing infinite recursion
+- Uses a generator to yield the final elements, supporting lazy iteration
 ### **py3p.getname**
 #### Get the name of a callable object
 - Supports common classes, functions, and methods, including functions decorated with `functools.wraps`

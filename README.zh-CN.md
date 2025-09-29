@@ -7,6 +7,7 @@
     - [py3p.exports](#py3pexports)
     - [py3p.Empty](#py3pempty)
     - [py3p.safe](#py3psafe)
+    - [py3p.flatten](#py3pflatten)
     - [py3p.getname](#py3pgetname)
     - [py3p.hashable](#py3phashable)
     - [py3p.pstr](#py3ppstr)
@@ -64,6 +65,12 @@
     > 判断属性是否存在，相比 `builtins.hasattr`，禁用了类方法影响
 - `safe.setattr`
     > 设置属性值，相比 `builtins.setattr`，禁用了类方法影响
+### **py3p.flatten**
+#### 展开列表或元组
+- 接受任意数量参数，自动将它们组合成一个新的元组作为展开的起点
+- 仅展开列表和元组，其他可迭代对象保持原样，不会被展开
+- 如果存在自引用或交叉引用，仅展开最外层对象，防止无限递归
+- 使用生成器输出最终元素，支持惰性迭代
 ### **py3p.getname**
 #### 获取可调用对象的名字
 - 支持常见的类，函数和方法，包括被 `functools.wraps` 装饰过的函数

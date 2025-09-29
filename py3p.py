@@ -144,6 +144,18 @@ class safe:
         cls = type if safe.isinstance(obj, type) else object
         return cls.__setattr__(obj, name, value)
 
+def flatten(*args):
+    from builtins import id, list, set, tuple
+    def _flatten(items, memo):
+        for item in items:
+            if safe.isinstance(item, list | tuple) and not id(item) in memo:
+                memo.add( id(item) )
+                yield from _flatten(item, memo)
+                memo.remove( id(item) )
+            else:
+                yield item
+    return _flatten( args, set() )
+
 def getname(obj):
     from functools import partial, partialmethod
     from types import MethodType
